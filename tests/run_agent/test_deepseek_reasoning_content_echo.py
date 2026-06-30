@@ -484,6 +484,51 @@ class TestNeedsKimiToolReasoning:
         assert agent._needs_kimi_tool_reasoning() is False
 
 
+class TestNeedsPoolsideToolReasoning:
+    """_needs_poolside_tool_reasoning() recognises all three detection signals."""
+
+    def test_provider_poolside(self) -> None:
+        agent = _make_agent(provider="poolside", model="laguna-m.1")
+        assert agent._needs_poolside_tool_reasoning() is True
+
+    def test_model_substring(self) -> None:
+        # Custom provider pointing at Poolside with provider='custom'
+        agent = _make_agent(provider="custom", model="laguna-m.1")
+        assert agent._needs_poolside_tool_reasoning() is True
+
+    def test_base_url_poolsi_de(self) -> None:
+        agent = _make_agent(
+            provider="custom",
+            model="some-aliased-name",
+            base_url="https://api.poolsi.de/v1",
+        )
+        assert agent._needs_poolside_tool_reasoning() is True
+
+    def test_base_url_inference_poolside_ai(self) -> None:
+        agent = _make_agent(
+            provider="custom",
+            model="some-aliased-name",
+            base_url="https://inference.poolside.ai/v1",
+        )
+        assert agent._needs_poolside_tool_reasoning() is True
+
+    def test_provider_case_insensitive(self) -> None:
+        agent = _make_agent(provider="Poolside", model="")
+        assert agent._needs_poolside_tool_reasoning() is True
+
+    def test_non_poolside_provider(self) -> None:
+        agent = _make_agent(
+            provider="openrouter",
+            model="anthropic/claude-sonnet-4.6",
+            base_url="https://openrouter.ai/api/v1",
+        )
+        assert agent._needs_poolside_tool_reasoning() is False
+
+    def test_empty_everything(self) -> None:
+        agent = _make_agent()
+        assert agent._needs_poolside_tool_reasoning() is False
+
+
 class TestReapplyReasoningEchoForProviderSwitch:
     """Mid-conversation fallover to a require-side provider must re-pad.
 

@@ -5135,6 +5135,7 @@ class AIAgent:
             self._needs_deepseek_tool_reasoning()
             or self._needs_kimi_tool_reasoning()
             or self._needs_mimo_tool_reasoning()
+            or self._needs_poolside_tool_reasoning()
         )
         self._thinking_pad_cache = (key, result)
         return result
@@ -5188,6 +5189,22 @@ class AIAgent:
             or "mimo" in model
             or base_url_host_matches(self.base_url, "api.xiaomimimo.com")
             or base_url_host_matches(self.base_url, "xiaomimimo.com")
+        )
+
+    def _needs_poolside_tool_reasoning(self) -> bool:
+        """Return True when the current provider is Poolside thinking mode.
+
+        Poolside's Laguna models require ``reasoning_content`` on every
+        assistant tool-call message when replaying history; omitting it
+        causes HTTP 400.
+        """
+        provider = (self.provider or "").lower()
+        model = (self.model or "").lower()
+        return (
+            provider == "poolside"
+            or "laguna" in model
+            or base_url_host_matches(self.base_url, "api.poolsi.de")
+            or base_url_host_matches(self.base_url, "inference.poolside.ai")
         )
 
     def _copy_reasoning_content_for_api(self, source_msg: dict, api_msg: dict) -> None:
